@@ -48,8 +48,9 @@ import dill as pickle
 
 from scipy.misc import derivative
 
-
-
+# import os 
+# print(os.getcwd())
+# print(os.listdir())
 
 class Name:
     def __init__(self):
@@ -1126,7 +1127,6 @@ def get_held_races(date):
 
         for race_i in soup_i.find("div", class_="RaceList_Main").find_all("li"):
             text = race_i.text.replace("\n","")
-            print(text)
             R = int(text[:text.index("R")])
             url = race_i.find("a").get("href")
             name = text[text.index("R")+1: text.find(":")-2]
@@ -1136,22 +1136,19 @@ def get_held_races(date):
             d[R]["R"] = R
             d[R]["name"] = name
             d[R]["race_id"] = race_id
-            print(d[R]["R"], d[R]["name"], d[R]["race_id"], sep="\n")
         data.append(d)
     return data
 
 
-
-today = datetime.date.today().isocalendar()
-
-year = today[0]
-week = today[1]
     
 
 ## 日付を選ぶ
 if "data" not in st.session_state:
+    today = datetime.date.today().isocalendar()
+    year = today[0]
+    week = today[1]
     st.write("曜日の選択")
-    sat = st.checkbox('土')
+    sat = st.checkbox(f'土')
     sun = st.checkbox('日')
 
     date_list = []
@@ -1255,7 +1252,6 @@ elif "df_pred_test_groupby" not in st.session_state:
 
     with st.spinner('Load AI models'):
         models_data = pickle.load(open("models_data_v7.sav", 'rb'))
-    # st.success('Done!')
 
     def test(models, _df, _df_encoded, X_cols, TARGET, dev_reverse):
         print(f"        {TARGET}")
@@ -1328,9 +1324,9 @@ else:
 
         df_target = df_pred_test[["枠番", "馬番"] + display_cols].fillna(0).astype({"馬番":int, "枠番":int})
         df_target.index = df_pred_test["horse_id"].map(lambda x: nm[x]).values
-        df_target["スコア"] = df_target[
-            [f"{col}ensemble_dev" for col in ["勝利", "連対",  "複勝", "着差", "タイム"]]
-            ].mean(axis=1)
+        # df_target["スコア"] = df_target[
+        #     [f"{col}_dev" for col in ["勝利", "連対",  "複勝", "着差", "タイム"]]
+        #     ].mean(axis=1)
         df_target = df_target.sort_values(by=sort_key, ascending=False)
         df_target = df_target.drop_duplicates()
 
@@ -1383,17 +1379,6 @@ else:
             used[name] = i
         df_target = df_target[is_use]
 
-
-        for col in df_target.columns:
-            if "log" in col:
-                df_target[col] = 10 * df_target[col]
-            if "標準着差" in col and "pred" in col:
-                df_target[col] = 10000 * df_target[col]
-            if any(key in col for key in ["勝利", "連対", "複勝", "掲示板"]) and "pred" in col:
-                df_target[col] = 100 * df_target[col]
-
-        display_cols = [col for col in display_cols if "pred" not in col]
-
         race_id = df_pred_test.iloc[0].race_id
         df_target = (
                 df_target.style
@@ -1401,13 +1386,13 @@ else:
                     .apply(back_color)
                     .apply(wakuban_color, subset=['枠番'])
                     .apply(umaban_color, subset=['馬番'])
-                    .applymap(highlight, subset=display_cols+["スコア"])
-                    .apply(max_bold, subset=display_cols+["スコア"])
+                    .applymap(highlight, subset=display_cols)
+                    .apply(max_bold, subset=display_cols)
                     .set_caption(f"{int(race_id[12:14])}回{df_pred_test.iloc[0].開催地}{int(race_id[14:16])}日目 {int(race_id[16:18])}R {str(nm[race_id]).replace('()','')} {df_pred_test.iloc[0].芝ダ} {df_pred_test.iloc[0].距離:.0f}m")    
             )
         return df_target 
 
-    sort_key = "スコア"
+    sort_key = "勝利"
 
 
     race_list = st.session_state["id2name"].values()
@@ -1419,10 +1404,12 @@ else:
         race_list)
 
     display_cols_opt = ["勝利", "連対",  "複勝", "着差", "タイム", "単勝払戻", "複勝払戻"]
+    display_cols_opt = ["勝利"]
 
     # display_cols = st.sidebar.multiselect('表示する指標', display_cols_opt, display_cols_opt)
     display_cols = display_cols_opt
-    display_cols = [f"{col}ensemble_dev" for col in display_cols]
+    # display_cols = [f"{col}ensemble_dev" for col in display_cols]
+    display_cols = [f"{col}_dev" for col in display_cols]
 
 
     click4 = st.button("更新")
@@ -1435,4 +1422,3 @@ else:
                 n = df_pred_testi.shape[0] + 1
                 df_display = display_pred(df_pred_testi, display_cols, sort_key)
                 st.dataframe(df_display, height=35*n)
-
