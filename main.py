@@ -1405,7 +1405,7 @@ else:
                     .apply(max_bold, subset=display_cols+["スコア"])
                     .set_caption(f"{int(race_id[12:14])}回{df_pred_test.iloc[0].開催地}{int(race_id[14:16])}日目 {int(race_id[16:18])}R {str(nm[race_id]).replace('()','')} {df_pred_test.iloc[0].芝ダ} {df_pred_test.iloc[0].距離:.0f}m")    
             )
-        return df_target
+        return df_target 
 
     sort_key = "スコア"
 
