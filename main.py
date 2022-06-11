@@ -1221,7 +1221,7 @@ elif "df_pred_test_groupby" not in st.session_state:
 
     df_test_race, df_test_result = get_new_race_csv(race_id)
     df_test_prof, df_test_form = get_new_horse_csv(df_test_result)
-    nm = pickle.load(open("nm.pickle", 'rb'))
+    nm = pickle.load(open("nm.sav", 'rb'))
 
     # # 前処理
     df_test_race = preprocess_race(df_test_race)
