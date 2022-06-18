@@ -332,7 +332,7 @@ def preprocess_form(_df):
 
 
     _df["天気"] = _df["天気"].astype("category")
-    assert set(_df["天気"]) <= {'小雨', '小雪', '晴', '曇', '雨', '雪', np.nan}
+    assert set(_df["天気"].astype("str")) <= {'小雨', '小雪', '晴', '曇', '雨', '雪', "nan"}
 
     _df["R"] = _df["R"].astype(float).replace({0: np.nan})
     assert all(True if x in set(range(1,14)) else print(x) for x in _df["R"].fillna(1))
@@ -418,7 +418,7 @@ def preprocess_form(_df):
         else:
             return np.nan
     _df["馬場"] = _df["馬場"].astype("category")
-    assert set(_df["馬場"].fillna("良")) <= set("良稍重不")
+    assert set(_df["馬場"].astype(str)) <= set("良稍重不")|set(["nan"])
 
     def f(x):
         x = x.replace(":", ".")
@@ -495,6 +495,8 @@ def preprocess_form(_df):
 
 
     return _df
+
+
 
 def preprocess_v2(df_form):
     df_form["斤量比"] = df_form["斤量"] / df_form["馬体重"]
