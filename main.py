@@ -158,8 +158,6 @@ def preprocess_result(_df):
 
     return _df
 
-
-
 def preprocess_race(_df):
     _df = _df.drop(columns=["過去レースurl", "レース総称"])
 
@@ -1147,67 +1145,67 @@ if "data" not in st.session_state:
     today = datetime.date.today().isocalendar()
     year = today[0]
     week = today[1]
-    st.write("曜日の選択")
-    sat = st.checkbox(f'土')
-    sun = st.checkbox('日')
+
+    sat = datetime.date.fromisocalendar(year, week, 6)
+    sun = datetime.date.fromisocalendar(year, week, 7)
+
+    st.write("日付の選択")
+    box_sat = st.checkbox(f'{str(sat).replace("-", "/")} (土)')
+    box_sun = st.checkbox(f'{str(sun).replace("-", "/")} (日)')
 
     date_list = []
-
     click1 = st.button("OK")
-
-    data = []
-
     if click1:
-        if sat:
+        if box_sat:
             date_list.append(
-                str(datetime.date.fromisocalendar(year, week, 6)).replace("-", "")
+                str(sat).replace("-", "")
             )
-        if sun:
+        if box_sun:
             date_list.append(
-                str(datetime.date.fromisocalendar(year, week, 7)).replace("-", "")
+                str(sun).replace("-", "")
             )
         st.session_state["data"] = []
         for date in date_list:
             st.session_state["data"] += get_held_races(date)
-        
         st.button("次へ")
 
 # 開催を選ぶ
 elif "data2" not in st.session_state:
     st.write("開催地の選択")
-    opt = [f'{data_i["開催地"]}{data_i["回"]}回{data_i["日目"]}日目' for data_i in st.session_state["data"]]
-   
-    d = {opt_i: i for i, opt_i in enumerate(opt)}
-    options = st.selectbox('',opt)
-
+    options = [st.checkbox(f'{data_i["開催地"]}{data_i["回"]}回{data_i["日目"]}日目') 
+                                                        for data_i in st.session_state["data"]]
     click2 = st.button("OK")
     if click2:
-        st.session_state["data2"] = st.session_state["data"][d[options]]
+        st.session_state["data2"] = []
+        for i, is_ok in enumerate(options):
+            if is_ok:
+                st.session_state["data2"].append(st.session_state["data"][i])
         st.button("次へ")
         
 
 # レースを選ぶ
 elif "id_list" not in st.session_state:
+    options = []
+    id_list = []
+    names = []
+    columns = st.columns(len(st.session_state["data2"]))
 
-    races = [i for i in st.session_state["data2"].keys() if isinstance(i, int)]
-    opt = [f'{i}R {st.session_state["data2"][i]["name"]}' for i in races]
+    for i, (data_i, emoji) in enumerate(zip(st.session_state["data2"], "🏇🐴🐎🏆 　")):
+        with columns[i]:
+            st.header(f'{data_i["開催地"]}{data_i["回"]}回{data_i["日目"]}日目')
+            races = [i for i in data_i.keys() if isinstance(i, int)]
+            options += [st.checkbox(f'{i}R {data_i[i]["name"]} {emoji}') for i in races]
+            id_list += [f'{data_i[i]["race_id"]}' for i in races]
+            names += [f'{data_i["開催地"]} {i}R {data_i[i]["name"]}' for i in races]
 
-    if len(races)==12:
-        options = st.multiselect('レースの選択', opt, [opt_i for opt_i in opt if "11R" in opt_i])
-    else:
-        options = st.multiselect('レースの選択',opt)
-    d = {opt_i: i+1 for i, opt_i in enumerate(opt)}
+    st.session_state["id2name"] = {}
     click3 = st.button("OK")
-
     if click3:
         st.session_state["id_list"] = []
-        st.session_state["id2name"] = {}
-        for i in options:
-            R = d[i]
-            race_id = st.session_state["data2"][R]["race_id"]
-            race_name = st.session_state["data2"][R]["name"]
-            st.session_state["id_list"].append(race_id)
-            st.session_state["id2name"][race_id] = f"{R}R {race_name}"
+        for race_id, is_ok, name in zip(id_list, options, names):
+            if is_ok:
+                st.session_state["id_list"].append(race_id)
+                st.session_state["id2name"][race_id] = name
         st.button("次へ")
 
 
