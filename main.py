@@ -1084,11 +1084,16 @@ def get_new_horse_csv(df_result):
     df_form = pd.concat(form_list, axis=0).replace({"": np.nan, "--": np.nan})
     xxx = st.empty()
     bar = st.empty()
+
+    # formが空の場合に対応（新馬戦のみの選択）
+    cols = set(['index', '着差', 'race_id', 'horse_id', '日付', '開催', '天気', 'R', 'レース名', '映像', '頭数', '枠番', '馬番', 'オッズ', '人気', '着順', '騎手', '斤量', '距離', '馬場', '馬場指数', 'タイム', 'ﾀｲﾑ指数', '通過', 'ペース', '上り', '馬体重', '厩舎ｺﾒﾝﾄ', '備考', '勝ち馬(2着馬)', '賞金', 'jockey_id'])
+    df_form_cols = set(df_form.columns)
+    for col in cols-df_form_cols:
+        df_form[col] = np.nan
     return df_prof, df_form
 
 def encoded(_df, upload=False, download=False):
     if download:
-#         %cd /content/drive/My Drive/Horse Racing/models
         category_cols = pickle.load(open("category_cols.sav", 'rb'))
         print("GET OrdinalEncoder, 'oe.sav' !!")
         oe = pickle.load(open("oe.sav", 'rb'))
@@ -1101,7 +1106,6 @@ def encoded(_df, upload=False, download=False):
         _df[category_cols] = _df[category_cols].astype('category')
 
     if upload:
-#         %cd /content/drive/My Drive/Horse Racing/models
         pickle.dump(category_cols, open(f'category_cols.sav', 'wb'))
         print("LOAD OrdinalEncoder, 'oe.sav' !!")
         pickle.dump(oe, open(f'oe.sav', 'wb'))
