@@ -4,7 +4,7 @@ st.title("keiba AI")
 
 ## import & def func
 import re
-# import os                                   # ファイルディレクトリ操作
+import os                                   # ファイルディレクトリ操作
 # import csv
 import time
 # import json
@@ -43,8 +43,9 @@ import lightgbm as lgbm
 import warnings
 warnings.filterwarnings('ignore')
 
-import pickle
-import dill as pickle
+# import pickle
+# import dill as pickle
+import dill
 
 from scipy.misc import derivative
 
@@ -1255,7 +1256,16 @@ elif "df_pred_test_groupby" not in st.session_state:
     df_test_encoded = encoded(df_test.copy(), download=True)
 
     with st.spinner('Load AI models'):
-        models_data = pickle.load(open("models_data_v7.sav", 'rb'))
+        models_data = {}
+        for key in os.listdir("model"):
+            print(key)
+            models_data[key] = dill.load(open(f"model/{key}/metadata.sav", 'rb'))
+            models_data[key]["models"] = []
+            for model_path in os.listdir(f"model/{key}/models"):
+                model = dill.load(open(f"model/{key}/models/{model_path}", 'rb'))
+                models_data[key]["models"].append(model)
+                print(model)
+        # models_data = pickle.load(open("models_data_v7.sav", 'rb'))
 
     def test(models, _df, _df_encoded, X_cols, TARGET, dev_reverse):
         print(f"        {TARGET}")
