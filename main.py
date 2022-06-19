@@ -1338,9 +1338,9 @@ else:
 
         df_target = df_pred_test[["枠番", "馬番"] + display_cols].fillna(0).astype({"馬番":int, "枠番":int})
         df_target.index = df_pred_test["horse_id"].map(lambda x: nm[x]).values
-        # df_target["スコア"] = df_target[
-        #     [f"{col}_dev" for col in ["勝利", "連対",  "複勝", "着差", "タイム"]]
-        #     ].mean(axis=1)
+        df_target["スコア"] = df_target[
+            [f"{col}ensemble_dev" for col in ["勝利", "連対",  "複勝", "着差", "タイム"]]
+            ].mean(axis=1)
         df_target = df_target.sort_values(by=sort_key, ascending=False)
         df_target = df_target.drop_duplicates()
 
@@ -1393,6 +1393,17 @@ else:
             used[name] = i
         df_target = df_target[is_use]
 
+
+        for col in df_target.columns:
+            if "log" in col:
+                df_target[col] = 10 * df_target[col]
+            if "標準着差" in col and "pred" in col:
+                df_target[col] = 10000 * df_target[col]
+            if any(key in col for key in ["勝利", "連対", "複勝", "掲示板"]) and "pred" in col:
+                df_target[col] = 100 * df_target[col]
+
+        display_cols = [col for col in display_cols if "pred" not in col]
+
         race_id = df_pred_test.iloc[0].race_id
         df_target = (
                 df_target.style
@@ -1400,30 +1411,23 @@ else:
                     .apply(back_color)
                     .apply(wakuban_color, subset=['枠番'])
                     .apply(umaban_color, subset=['馬番'])
-                    .applymap(highlight, subset=display_cols)
-                    .apply(max_bold, subset=display_cols)
+                    .applymap(highlight, subset=display_cols+["スコア"])
+                    .apply(max_bold, subset=display_cols+["スコア"])
                     .set_caption(f"{int(race_id[12:14])}回{df_pred_test.iloc[0].開催地}{int(race_id[14:16])}日目 {int(race_id[16:18])}R {str(nm[race_id]).replace('()','')} {df_pred_test.iloc[0].芝ダ} {df_pred_test.iloc[0].距離:.0f}m")    
             )
-        return df_target 
+        return df_target
 
-    sort_key = "勝利"
-
-
+    sort_key = "スコア"
     race_list = st.session_state["id2name"].values()
     nm = st.session_state["nm"]
-    print(race_list)
     options = st.multiselect(
         '予測するレースを選ぶ',
         race_list,
         race_list)
 
     display_cols_opt = ["勝利", "連対",  "複勝", "着差", "タイム", "単勝払戻", "複勝払戻"]
-    display_cols_opt = ["勝利"]
-
-    # display_cols = st.sidebar.multiselect('表示する指標', display_cols_opt, display_cols_opt)
     display_cols = display_cols_opt
-    # display_cols = [f"{col}ensemble_dev" for col in display_cols]
-    display_cols = [f"{col}_dev" for col in display_cols]
+    display_cols = [f"{col}ensemble_dev" for col in display_cols]
 
 
     click4 = st.button("更新")
@@ -1432,7 +1436,14 @@ else:
         for race_id, df_pred_testi in st.session_state["df_pred_test_groupby"]:
             race_name = st.session_state["id2name"][re.sub(r"\D", "", race_id)]
             if race_name in options:
-                st.write(race_name)
+                race_data = df_pred_testi.iloc[0]
+                tenki = {'小雨': "☂️",
+                         '小雪': "⛄️",
+                         '晴': "☀️",
+                         '曇': "☁️",
+                         '雨': "☔︎",
+                         '雪': "☃️"}
+                st.write(f'{race_name}\t{race_data.芝ダ}{race_data.距離:.0f}m {tenki[race_data.天気]} {race_data.馬場}')
                 n = df_pred_testi.shape[0] + 1
                 df_display = display_pred(df_pred_testi, display_cols, sort_key)
                 st.dataframe(df_display, height=35*n)
