@@ -43,8 +43,8 @@ import lightgbm as lgbm
 import warnings
 warnings.filterwarnings('ignore')
 
-# import pickle
-# import dill as pickle
+# import dill
+# import dill as dill
 import dill
 
 from scipy.misc import derivative
@@ -671,9 +671,9 @@ def get_pp2(_df):
 def encoded(_df, upload=False, download=False):
     if download:
 #         %cd /content/drive/My Drive/Horse Racing/models
-        category_cols = pickle.load(open("category_cols.sav", 'rb'))
+        category_cols = dill.load(open("category_cols.sav", 'rb'))
         print("GET OrdinalEncoder, 'oe.sav' !!")
-        oe = pickle.load(open("oe.sav", 'rb'))
+        oe = dill.load(open("oe.sav", 'rb'))
         _df[category_cols] = oe.transform(_df[category_cols].values)
         _df[category_cols] = _df[category_cols].astype('category')
     else:
@@ -687,9 +687,9 @@ def encoded(_df, upload=False, download=False):
 
     if upload:
 #         %cd /content/drive/My Drive/Horse Racing/models
-        pickle.dump(category_cols, open(f'category_cols.sav', 'wb'))
+        dill.dump(category_cols, open(f'category_cols.sav', 'wb'))
         print("LOAD OrdinalEncoder, 'oe.sav' !!")
-        pickle.dump(oe, open(f'oe.sav', 'wb'))
+        dill.dump(oe, open(f'oe.sav', 'wb'))
 
     return _df
 
@@ -1097,9 +1097,9 @@ def get_new_horse_csv(df_result):
 
 def encoded(_df, upload=False, download=False):
     if download:
-        category_cols = pickle.load(open("category_cols.sav", 'rb'))
+        category_cols = dill.load(open("category_cols.sav", 'rb'))
         print("GET OrdinalEncoder, 'oe.sav' !!")
-        oe = pickle.load(open("oe.sav", 'rb'))
+        oe = dill.load(open("oe.sav", 'rb'))
         _df[category_cols] = oe.transform(_df[category_cols].values)
         _df[category_cols] = _df[category_cols].astype('category')
     else:
@@ -1109,9 +1109,9 @@ def encoded(_df, upload=False, download=False):
         _df[category_cols] = _df[category_cols].astype('category')
 
     if upload:
-        pickle.dump(category_cols, open(f'category_cols.sav', 'wb'))
+        dill.dump(category_cols, open(f'category_cols.sav', 'wb'))
         print("LOAD OrdinalEncoder, 'oe.sav' !!")
-        pickle.dump(oe, open(f'oe.sav', 'wb'))
+        dill.dump(oe, open(f'oe.sav', 'wb'))
 
     return _df
 
@@ -1223,7 +1223,7 @@ elif "df_pred_test_groupby" not in st.session_state:
 
     df_test_race, df_test_result = get_new_race_csv(race_id)
     df_test_prof, df_test_form = get_new_horse_csv(df_test_result)
-    nm = pickle.load(open("nm.sav", 'rb'))
+    nm = dill.load(open("nm.sav", 'rb'))
 
     # # 前処理
     df_test_race = preprocess_race(df_test_race)
@@ -1265,7 +1265,7 @@ elif "df_pred_test_groupby" not in st.session_state:
                 model = dill.load(open(f"model/{key}/models/{model_path}", 'rb'))
                 models_data[key]["models"].append(model)
                 print(model)
-        # models_data = pickle.load(open("models_data_v7.sav", 'rb'))
+        # models_data = dill.load(open("models_data_v7.sav", 'rb'))
 
     def test(models, _df, _df_encoded, X_cols, TARGET, dev_reverse):
         print(f"        {TARGET}")
