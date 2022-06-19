@@ -4,7 +4,7 @@ beautifulsoup4
 numpy
 pandas
 wheel
-scikit-learn
-lightgbm
+scikit-learn==1.0.2
+lightgbm==2.2.3
 dill
 scipy
