@@ -216,13 +216,16 @@ def page3():
 
     # レースデータのクロール
     from scrape import get_new_race_csv, get_new_horse_csv
+    from prepocess import Name
     race_id = st.session_state.race_id
     df_test_race, df_test_result = get_new_race_csv(race_id)
     df_test_prof, df_test_form = get_new_horse_csv(df_test_result)
-    nm = dill.load(open("nm.sav", 'rb'))
+    # nm = dill.load(open("nm.sav", 'rb'))
+    nm = Name()
 
     # 前処理
     from prepocess import preprocess_race, preprocess_result, preprocess_prof, preprocess_form, preprocess_v2, get_shift_form_v2, df_concat, get_pp2, encoded
+
     with st.spinner("データ処理中..."):
         df_test_race = preprocess_race(df_test_race, nm)
         df_test_result = preprocess_result(df_test_result, nm)
@@ -440,18 +443,18 @@ def page4():
 if "page" not in st.session_state:
     st.session_state.page = 1
 
+if "page" in st.session_state:
+    # 日付の選択
+    if st.session_state.page == 1:
+        page1()
 
-# 日付の選択
-if st.session_state.page == 1:
-    page1()
+    # レースの選択
+    elif st.session_state.page == 2:
+        page2()
 
-# レースの選択
-elif st.session_state.page == 2:
-    page2()
+    # レースの取得・推論・表示
+    elif st.session_state.page == 3:
+        page3()
 
-# レースの取得・推論・表示
-elif st.session_state.page == 3:
-    page3()
-
-elif st.session_state.page == 4:
-    page4()
+    elif st.session_state.page == 4:
+        page4()
