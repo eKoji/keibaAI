@@ -41,6 +41,9 @@ class MyLGBMClassifier(lgbm.LGBMClassifier):
 def page1():
     def next_page():
         st.session_state.date = [key for key in keys if st.session_state[key]]
+        if st.session_state.select_date not in st.session_state.date:
+            date = str(st.session_state.select_date).replace("-", "")
+            st.session_state.date.append(date)
         if len(st.session_state.date) >= 1:
             st.session_state.page += 1
         else:
@@ -95,6 +98,10 @@ def page1():
             key = date_str.replace("-", "")
             st.checkbox(label=label, key=key)
             keys.append(key)
+        st.date_input(label="土日以外もみる", 
+                     value=date_opts[0],  
+                     key="select_date")
+
         return keys
     st.write("日付の選択")
     with st.form(key="form"):
@@ -207,6 +214,8 @@ def page2():
         return keys
     st.write("レースの選択")
     with st.form(key="form2"):
+        if not data_races_held:
+            st.error("開催日を指定してください")
         keys = add_race_checkboxes(data_races_held)
         st.form_submit_button(label="OK", on_click=next_page)
 
